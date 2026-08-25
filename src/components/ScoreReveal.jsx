@@ -1,14 +1,18 @@
 import { formatElapsed, formatMoney } from "../game/format.js";
-import { TUTORIAL_ROUND_COUNT } from "../game/tutorial.js";
+import { skillLabel } from "../game/tutorial.js";
 
 export function ScoreReveal({ result, tutorial, onReplay }) {
   const isTutorial = Boolean(tutorial);
-  const lastRound = isTutorial && tutorial.round + 1 >= TUTORIAL_ROUND_COUNT;
-  const cta = !isTutorial
-    ? "Next case"
-    : lastRound
-      ? "Enter the field"
-      : `Next training (${tutorial.round + 2}/${TUTORIAL_ROUND_COUNT})`;
+  const passed = Boolean(result.accurate);
+  const remaining = tutorial?.remaining ?? 0;
+  const finishedPath = isTutorial && passed && remaining === 0;
+
+  let cta = "Next case";
+  if (isTutorial) {
+    if (!passed) cta = `Retry · ${skillLabel(tutorial.moduleId)}`;
+    else if (finishedPath) cta = "Enter the field";
+    else cta = `Next · ${remaining} module${remaining === 1 ? "" : "s"} left`;
+  }
 
   return (
     <div className="reveal">
@@ -18,9 +22,11 @@ export function ScoreReveal({ result, tutorial, onReplay }) {
         <p className="narrative">{result.narrative}</p>
         {isTutorial ? (
           <p className="narrative">
-            {lastRound
-              ? "Training complete. Live cases are larger, noisier, and pay desk cash when you solve them cleanly."
-              : "Score lines work the same on live cases: right hypothesis, critical pins, avoid decoys, watch the allotment."}
+            {!passed
+              ? "This module stays on your path until you solve it. Use Help on the coach if you get stuck."
+              : finishedPath
+                ? "Training path complete. Live cases are larger, noisier, and pay desk cash when you solve them cleanly."
+                : "Module cleared. Only the skills you still need will appear next."}
           </p>
         ) : null}
         <ol>

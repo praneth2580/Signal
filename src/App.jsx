@@ -1,13 +1,15 @@
 import { useEffect, useReducer, useRef, useState } from "react";
+import { PlacementGate } from "./components/PlacementGate.jsx";
 import { StartGate } from "./components/StartGate.jsx";
 import { Workstation } from "./components/Workstation.jsx";
 import { LEAK_OFFERS } from "./game/leaks.js";
 import { reduce } from "./game/state.js";
 import {
+  applyPlacement,
+  getCurrentModuleId,
   getTutorialProgress,
-  markTutorialRoundComplete,
+  markTutorialModuleComplete,
   resetTutorialProgress,
-  TUTORIAL_ROUND_COUNT,
 } from "./game/tutorial.js";
 import { creditWallet, getWallet, spendWallet } from "./game/wallet.js";
 
@@ -16,6 +18,7 @@ export function App() {
   const [seedDraft, setSeedDraft] = useState("");
   const [wallet, setWallet] = useState(getWallet);
   const [tutorialProgress, setTutorialProgress] = useState(getTutorialProgress);
+  const [placing, setPlacing] = useState(false);
   const paidReceipt = useRef(null);
 
   useEffect(() => {
@@ -29,7 +32,11 @@ export function App() {
     paidReceipt.current = receipt;
 
     if (state.case.tutorial) {
-      setTutorialProgress(markTutorialRoundComplete(state.case.tutorial.round));
+      setTutorialProgress(
+        markTutorialModuleComplete(state.case.tutorial.moduleId, {
+          passed: Boolean(state.result.accurate),
+        }),
+      );
     } else if (state.result.payout > 0) {
       creditWallet(state.result.payout, receipt);
       setWallet(getWallet());
@@ -41,13 +48,31 @@ export function App() {
   }
 
   function startTutorial() {
-    let progress = getTutorialProgress();
-    if (progress.finished) {
-      progress = resetTutorialProgress();
+    const progress = getTutorialProgress();
+    if (!progress.placed || progress.finished) {
+      if (progress.finished) {
+        setTutorialProgress(resetTutorialProgress());
+      }
+      setPlacing(true);
+      return;
     }
+
+    const moduleId = getCurrentModuleId(progress);
+    if (!moduleId) {
+      setPlacing(true);
+      return;
+    }
+    dispatch({ type: "NEW_CASE", tutorial: moduleId });
+  }
+
+  function finishPlacement(ratings, quizAnswers) {
+    const progress = applyPlacement(ratings, quizAnswers);
     setTutorialProgress(progress);
-    const round = Math.min(progress.nextRound, TUTORIAL_ROUND_COUNT - 1);
-    dispatch({ type: "NEW_CASE", tutorial: round });
+    setPlacing(false);
+    const moduleId = getCurrentModuleId(progress);
+    if (moduleId) {
+      dispatch({ type: "NEW_CASE", tutorial: moduleId });
+    }
   }
 
   function continueAfterScore() {
@@ -56,13 +81,31 @@ export function App() {
       return;
     }
 
-    const round = state.case.tutorial.round;
-    if (round + 1 < TUTORIAL_ROUND_COUNT) {
-      dispatch({ type: "NEW_CASE", tutorial: round + 1 });
+    if (!state.result?.accurate) {
+      dispatch({ type: "NEW_CASE", tutorial: state.case.tutorial.moduleId });
+      return;
+    }
+
+    const progress = markTutorialModuleComplete(state.case.tutorial.moduleId, {
+      passed: true,
+    });
+    setTutorialProgress(progress);
+    const moduleId = getCurrentModuleId(progress);
+    if (moduleId) {
+      dispatch({ type: "NEW_CASE", tutorial: moduleId });
       return;
     }
 
     dispatch({ type: "NEW_CASE" });
+  }
+
+  if (placing) {
+    return (
+      <PlacementGate
+        onCancel={() => setPlacing(false)}
+        onComplete={finishPlacement}
+      />
+    );
   }
 
   if (!state) {

@@ -1,6 +1,6 @@
 import { createRng } from "../game/rng.js";
 import { formatMoney } from "../game/format.js";
-import { TUTORIAL_ROUND_COUNT } from "../game/tutorial.js";
+import { skillLabel } from "../game/tutorial.js";
 
 export function StartGate({
   seedDraft,
@@ -10,13 +10,16 @@ export function StartGate({
   onStart,
   onTutorial,
 }) {
-  const trainingDone = tutorialProgress?.finished;
-  const nextRound = Math.min((tutorialProgress?.nextRound ?? 0) + 1, TUTORIAL_ROUND_COUNT);
-  const trainingLabel = trainingDone
-    ? "Replay training"
-    : tutorialProgress?.nextRound
-      ? `Continue training (${nextRound}/${TUTORIAL_ROUND_COUNT})`
-      : "Start training";
+  const placed = tutorialProgress?.placed;
+  const finished = tutorialProgress?.finished;
+  const remaining = tutorialProgress?.queue?.length ?? 0;
+  const nextSkill = tutorialProgress?.queue?.[0];
+
+  let trainingLabel = "Start training";
+  if (finished) trainingLabel = "Retake placement";
+  else if (placed && remaining > 0) {
+    trainingLabel = `Continue training (${remaining} left)`;
+  }
 
   return (
     <div className="gate">
@@ -26,9 +29,15 @@ export function StartGate({
         <p className="gate-line">Find what the data is actually saying.</p>
         <p className="gate-sub">
           A case is generated. The truth is hidden. Solve fast to earn desk cash — spend it on contacts when you need a leak.
-          New to the desk? Run training first to learn the terms and tools.
+          New to the desk? Placement asks what you know and only trains the gaps.
         </p>
         <p className="gate-wallet">Desk cash {formatMoney(balance)}</p>
+        {placed && !finished && nextSkill ? (
+          <p className="gate-train-note">Next module: {skillLabel(nextSkill)}</p>
+        ) : null}
+        {finished ? (
+          <p className="gate-train-note">Training complete — you are cleared for live cases.</p>
+        ) : null}
         <form
           className="gate-cta"
           onSubmit={(event) => {

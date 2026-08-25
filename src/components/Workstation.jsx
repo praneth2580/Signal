@@ -182,7 +182,7 @@ export function Workstation({
             player={state.player}
             locked={Boolean(state.result)}
             balance={balance}
-            hideLeaks={Boolean(tutorial && tutorial.round < 2)}
+            hideLeaks={Boolean(tutorial)}
             hintHypothesis={helpReveal?.hypothesisId ?? null}
             onNote={onNote}
             onHypothesis={onHypothesis}

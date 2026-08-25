@@ -1,8 +1,12 @@
-import { evaluate } from "./evaluator.js";
 import { generateCase } from "./generator.js";
 import { LEAK_OFFERS, resolveLeak } from "./leaks.js";
 import { createRng, randomSeed } from "./rng.js";
-import { generateTutorialCase, isTutorialSeed } from "./tutorial.js";
+import { evaluate } from "./evaluator.js";
+import {
+  generateTutorialCase,
+  isTutorialSeed,
+  moduleIdFromSeed,
+} from "./tutorial.js";
 
 export function createGame(seed, options = {}) {
   if (options.tutorial != null) {
@@ -12,8 +16,8 @@ export function createGame(seed, options = {}) {
 
   const resolved = seed ? String(seed) : randomSeed();
   if (isTutorialSeed(resolved)) {
-    const round = ["TUTOR1", "TUTOR2", "TUTOR3"].indexOf(resolved.toUpperCase());
-    return buildState(generateTutorialCase(round));
+    const moduleId = moduleIdFromSeed(resolved) || "browse";
+    return buildState(generateTutorialCase(moduleId));
   }
 
   const rng = createRng(resolved);
