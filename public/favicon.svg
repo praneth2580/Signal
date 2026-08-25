@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <rect width="32" height="32" rx="7" fill="#0b0d0c"/>
+  <!-- muted noise traces -->
+  <path
+    d="M3 10.5h4l2-1.5 2 2.5 2-1.2 3 1.8 3-2.2 2 1.4 3-1.1 3 .9"
+    stroke="#2c352f"
+    stroke-width="1.2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M3 22.5h3l2.5-1.2 2 2 2.5-1.6 2.5 1.4 3-2 2.5 1.3 3-1.1 3.5.8"
+    stroke="#2c352f"
+    stroke-width="1.2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <!-- primary signal with anomaly spike -->
+  <path
+    d="M3 17h4.5l2-1.4 2.5 2.2 2.2-1.6 2.8-7.2 2.5 6.6 2.2-1.5 2.8 1.8 3.5-.9"
+    stroke="#c9a25a"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>
