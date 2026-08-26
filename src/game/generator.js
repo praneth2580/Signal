@@ -5,6 +5,7 @@ import {
   pickMissionTier,
   rollMissionParams,
 } from "./mission.js";
+import { allowedTypesForSolves } from "./truths.js";
 import { generateWorld } from "./world.js";
 
 const SITUATIONS = [
@@ -36,18 +37,26 @@ const FIND =
 /**
  * @param {string} seed
  * @param {ReturnType<import("./rng.js").createRng>} rng
- * @param {{ solves?: number, shiftCaseIndex?: number, missionId?: string }} [options]
+ * @param {{
+ *   solves?: number,
+ *   shiftCaseIndex?: number,
+ *   missionId?: string,
+ *   allowedTypes?: string[],
+ *   tipCredit?: boolean,
+ * }} [options]
  */
 export function generateCase(seed, rng, options = {}) {
+  const solves = options.solves ?? 0;
   const tier = options.missionId
     ? getMissionTier(options.missionId)
     : pickMissionTier(rng, {
-        solves: options.solves ?? 0,
+        solves,
         shiftCaseIndex: options.shiftCaseIndex ?? 0,
       });
 
   const params = rollMissionParams(rng, tier);
-  const world = generateWorld(rng, { params });
+  const allowedTypes = options.allowedTypes ?? allowedTypesForSolves(solves);
+  const world = generateWorld(rng, { params, allowedTypes });
   world.mission = tier;
   const evidence = generateEvidence(rng, world);
   const situation = rng.pick(SITUATIONS);
@@ -62,7 +71,10 @@ export function generateCase(seed, rng, options = {}) {
       label: tier.label,
       blurb: tier.blurb,
       maxPay: tier.maxPay,
+      decoyCount: tier.decoyCount,
+      vagueDecoyCopy: tier.vagueDecoyCopy,
     },
+    tipCredit: Boolean(options.tipCredit),
     briefing: {
       title: situation.title,
       happened: situation.happened,

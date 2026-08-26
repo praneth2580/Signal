@@ -8,6 +8,7 @@ export function CaseDock({
   locked,
   balance,
   hideLeaks = false,
+  tipCredit = false,
   hintHypothesis = null,
   onNote,
   onHypothesis,
@@ -52,23 +53,24 @@ export function CaseDock({
         </ul>
       ) : null}
 
-      <p className="pin-count">{player.selectedEvidence.length} evidence pinned</p>
-      <ul className="pins">
-        {player.selectedEvidence.map((id) => (
-          <li key={id}>{id}</li>
-        ))}
-      </ul>
+      <p className="clipboard-dock-hint">
+        {player.selectedEvidence.length === 0
+          ? "Clipboard empty — pin rows from the tables."
+          : `${player.selectedEvidence.length} clipped on the board`}
+      </p>
 
       {!hideLeaks ? (
         <div className="contacts">
           <h3>Paid contacts</h3>
           <p className="contacts-blurb">
             Spend desk cash for leaks. Faster solves pay more — shortcuts cost score and future cash.
+            {tipCredit ? " Streak perk: one anonymous tip is free on this case." : ""}
           </p>
           <ul className="leak-list">
             {LEAK_OFFERS.map((offer) => {
               const owned = bought.has(offer.id);
-              const canAfford = balance >= offer.cost;
+              const freeOffer = tipCredit && offer.id === "anonymous_tip";
+              const canAfford = freeOffer || balance >= offer.cost;
               return (
                 <li key={offer.id}>
                   <div>
@@ -80,7 +82,7 @@ export function CaseDock({
                     disabled={locked || owned || !canAfford}
                     onClick={() => onBuyLeak(offer.id)}
                   >
-                    {owned ? "Bought" : formatMoney(offer.cost)}
+                    {owned ? "Bought" : freeOffer ? "Free" : formatMoney(offer.cost)}
                   </button>
                 </li>
               );

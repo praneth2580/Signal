@@ -1,6 +1,10 @@
 import { hypothesisLabel } from "./hypotheses.js";
-import { lookupName } from "./format.js";
 import { buildLesson } from "./lesson.js";
+import {
+  narrateTruth,
+  noiseBudgetForMission,
+  redHerringPinCost,
+} from "./truths.js";
 import { calculatePayout } from "./wallet.js";
 
 export function evaluate(state) {
@@ -21,26 +25,29 @@ export function evaluate(state) {
   }
 
   const selected = new Set(player.selectedEvidence);
-  const criticalHits = truth.evidenceIds.filter((id) => selected.has(id));
+  const evidenceIds = truth.evidenceIds ?? [];
+  const criticalHits = evidenceIds.filter((id) => selected.has(id));
   const criticalScore = criticalHits.length * 150;
   total += criticalScore;
   lines.push({
-    label: `Critical evidence ${criticalHits.length}/${truth.evidenceIds.length}`,
+    label: `Critical evidence ${criticalHits.length}/${evidenceIds.length}`,
     delta: criticalScore,
   });
 
   const redHits = (truth.redHerringIds ?? []).filter((id) => selected.has(id));
   if (redHits.length > 0) {
-    const penalty = redHits.length * 80;
+    const per = redHerringPinCost(gameCase.mission);
+    const penalty = redHits.length * per;
     total -= penalty;
     lines.push({ label: "Red herrings pinned", delta: -penalty });
   }
 
   const noise = [...selected].filter(
-    (id) => !truth.evidenceIds.includes(id) && !(truth.redHerringIds ?? []).includes(id),
+    (id) => !evidenceIds.includes(id) && !(truth.redHerringIds ?? []).includes(id),
   );
-  if (noise.length > 4) {
-    const penalty = (noise.length - 4) * 25;
+  const budget = noiseBudgetForMission(gameCase.mission);
+  if (noise.length > budget) {
+    const penalty = (noise.length - budget) * 25;
     total -= penalty;
     lines.push({ label: "Excessive noise", delta: -penalty });
   }
@@ -84,17 +91,8 @@ export function evaluate(state) {
     allottedMs,
     maxPay: gameCase.maxPay ?? gameCase.mission?.maxPay ?? 200,
     mission: gameCase.mission ?? null,
-    narrative: narrate(gameCase),
+    narrative: narrateTruth(gameCase),
     hypothesis: hypothesisLabel(player.hypothesis),
     lesson,
   };
-}
-
-function narrate(gameCase) {
-  const truth = gameCase.truth;
-  const employee = lookupName(gameCase.people, truth.employeeId);
-  const location = lookupName(gameCase.locations, truth.locationId);
-  const account = gameCase.accounts.find((item) => item.id === truth.accountId);
-
-  return `${employee}'s credentials were used from ${location} to move funds on ${account?.customer ?? "a customer account"}.`;
 }

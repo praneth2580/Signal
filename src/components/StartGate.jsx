@@ -3,7 +3,16 @@ import { createRng } from "../game/rng.js";
 import { formatMoney } from "../game/format.js";
 import { SHIFT_LENGTH } from "../game/career.js";
 import { MISSION_TIERS, rankIndexForSolves } from "../game/mission.js";
+import { allowedTypesForSolves } from "../game/truths.js";
 import { skillLabel } from "../game/tutorial.js";
+
+function clearanceBlurb(solves, tipCredit) {
+  if (tipCredit) return "Streak perk ready · free anonymous tip on your next case";
+  if (solves < 3) return "Clearance unlock at 3 solves · billing & insider cases";
+  if (solves < 8) return "Clearance unlock at 8 solves · vendor failure & ordinary variance";
+  if (solves < 20) return "Clearance unlock at 20 solves · Black desk eligible";
+  return "Full clearance · all truth types and Black desk in the pool";
+}
 
 export function StartGate({
   seedDraft,
@@ -25,6 +34,8 @@ export function StartGate({
   const nextSkill = tutorialProgress?.queue?.[0];
   const canResume = shift?.active && !shift?.complete;
   const needsTraining = !placed || (placed && !finished && remaining > 0);
+  const solves = career?.solves ?? 0;
+  const typesOpen = allowedTypesForSolves(solves).length;
 
   let trainingLabel = "Start training";
   if (finished) trainingLabel = "Retake placement";
@@ -34,7 +45,7 @@ export function StartGate({
 
   const tierFloor = MISSION_TIERS[Math.min(
     MISSION_TIERS.length - 1,
-    rankIndexForSolves(career?.solves ?? 0),
+    rankIndexForSolves(solves),
   )];
 
   return (
@@ -62,6 +73,10 @@ export function StartGate({
               <dt>Streak</dt>
               <dd>{career?.streak ?? 0}</dd>
             </div>
+            <div>
+              <dt>Types</dt>
+              <dd>{typesOpen} open</dd>
+            </div>
           </dl>
 
           {canResume ? (
@@ -76,6 +91,8 @@ export function StartGate({
               <span className="mission-tier" data-tier={tierFloor.id}>
                 {tierFloor.label}
               </span>
+              {" · "}
+              {clearanceBlurb(solves, career?.tipCredit)}
             </p>
           ) : (
             <p className="gate-status">
@@ -83,6 +100,8 @@ export function StartGate({
               <span className="mission-tier" data-tier={tierFloor.id}>
                 {tierFloor.label}
               </span>
+              {" · "}
+              {clearanceBlurb(solves, career?.tipCredit)}
             </p>
           )}
 

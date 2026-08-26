@@ -1,4 +1,5 @@
 import { storage } from "../common/storage.js";
+import { allowedTypesForSolves } from "./truths.js";
 
 const CAREER_KEY = "career";
 const SHIFT_KEY = "shift";
@@ -19,6 +20,7 @@ function emptyCareer() {
     bestStreak: 0,
     shiftsCleared: 0,
     totalEarned: 0,
+    tipCredit: false,
   };
 }
 
@@ -41,6 +43,18 @@ export function rankForSolves(solves) {
     if (solves >= rank.minSolves) current = rank;
   }
   return current;
+}
+
+/** Truth types unlocked by clearance. */
+export function careerAllowedTypes(career = getCareer()) {
+  return allowedTypesForSolves(career.solves ?? 0);
+}
+
+export function consumeTipCredit() {
+  const career = getCareer();
+  if (!career.tipCredit) return false;
+  saveCareer({ ...career, tipCredit: false });
+  return true;
 }
 
 export function getShift() {
@@ -81,14 +95,18 @@ export function recordLiveResult(result) {
   const accurate = Boolean(result?.accurate);
   const payout = accurate ? Number(result?.payout) || 0 : 0;
 
+  const nextStreak = accurate ? career.streak + 1 : 0;
+  const earnedTip = accurate && nextStreak === 3;
+
   const nextCareer = {
     ...career,
     solves: career.solves + (accurate ? 1 : 0),
-    streak: accurate ? career.streak + 1 : 0,
+    streak: nextStreak,
     bestStreak: accurate
-      ? Math.max(career.bestStreak, career.streak + 1)
+      ? Math.max(career.bestStreak, nextStreak)
       : career.bestStreak,
     totalEarned: career.totalEarned + payout,
+    tipCredit: career.tipCredit || earnedTip,
   };
   saveCareer(nextCareer);
 

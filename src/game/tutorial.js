@@ -409,7 +409,16 @@ export function generateTutorialCase(moduleId) {
   const progress = getTutorialProgress();
   const queue = progress.queue.length ? progress.queue : [id];
   const position = Math.max(0, queue.indexOf(id));
-  const world = generateWorld(rng, { params: MODULE_PARAMS[id] });
+  const world = generateWorld(rng, {
+    params: MODULE_PARAMS[id],
+    forceType: "credential_compromise",
+  });
+  world.mission = {
+    id: "routine",
+    label: "Training",
+    decoyCount: 1,
+    vagueDecoyCopy: false,
+  };
   const evidence = generateEvidence(rng, world);
 
   return {

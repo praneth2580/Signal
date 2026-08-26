@@ -21,6 +21,7 @@ export function Masthead({
   onNewCase,
   onOpenBriefing,
   onEndShift,
+  onToggleShortcuts,
 }) {
   const [now, setNow] = useState(Date.now());
 
@@ -124,6 +125,11 @@ export function Masthead({
           <button type="button" onClick={onOpenBriefing}>
             Briefing
           </button>
+          {onToggleShortcuts ? (
+            <button type="button" onClick={onToggleShortcuts} title="Keyboard shortcuts (?)">
+              Keys
+            </button>
+          ) : null}
           {!tutorial ? (
             <>
               <button type="submit">Load</button>

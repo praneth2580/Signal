@@ -6,6 +6,7 @@ import { Workstation } from "./components/Workstation.jsx";
 import {
   clearShift,
   completeShift,
+  consumeTipCredit,
   getCareer,
   getShift,
   rankForSolves,
@@ -231,6 +232,14 @@ export function App() {
         const offer = LEAK_OFFERS.find((item) => item.id === leakId);
         if (!offer) return;
         if (state.player.leaks.some((leak) => leak.id === offer.id)) return;
+        const freeTip =
+          Boolean(state.case.tipCredit) && leakId === "anonymous_tip";
+        if (freeTip) {
+          consumeTipCredit();
+          setCareer(getCareer());
+          dispatch({ type: "BUY_LEAK", leakId, paid: true, free: true });
+          return;
+        }
         const spent = spendWallet(offer.cost);
         if (!spent) return;
         refreshWallet();

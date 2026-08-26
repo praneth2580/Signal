@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BriefingModal } from "./BriefingModal.jsx";
 import { CaseDock } from "./CaseDock.jsx";
 import { DataTable } from "./DataTable.jsx";
 import { Masthead } from "./Masthead.jsx";
 import { RecordModal } from "./RecordModal.jsx";
 import { ScoreReveal } from "./ScoreReveal.jsx";
-import { ThreadBoard } from "./ThreadBoard.jsx";
+import { Clipboard } from "./Clipboard.jsx";
 import { TutorialCoach } from "./TutorialCoach.jsx";
 import { datasetColumns, datasetRows } from "./datasets.js";
 import { derivePhase } from "../game/phase.js";
@@ -18,6 +18,23 @@ const DATASETS = [
   { id: "accounts", label: "Accounts" },
   { id: "locations", label: "Places" },
 ];
+
+const SHORTCUTS = [
+  { keys: "/", label: "Focus search" },
+  { keys: "1–6", label: "Switch dataset" },
+  { keys: "Enter", label: "Open selected row" },
+  { keys: "p", label: "Pin / unpin (in record)" },
+  { keys: "Esc", label: "Close modal / clipboard" },
+  { keys: "t", label: "Open clipboard" },
+  { keys: "?", label: "Toggle this sheet" },
+];
+
+function isTypingTarget(target) {
+  if (!target || !(target instanceof Element)) return false;
+  const tag = target.tagName;
+  if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
+  return target.isContentEditable;
+}
 
 export function Workstation({
   state,
@@ -48,6 +65,11 @@ export function Workstation({
   const [briefingFresh, setBriefingFresh] = useState(true);
   const [helpReveal, setHelpReveal] = useState(null);
   const [pinFlash, setPinFlash] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [clipboardOpen, setClipboardOpen] = useState(false);
+  const [clipboardPage, setClipboardPage] = useState(0);
+  const searchRef = useRef(null);
+  const clipboardRef = useRef(null);
 
   useEffect(() => {
     setSelected(null);
@@ -56,8 +78,15 @@ export function Workstation({
     setBriefingOpen(true);
     setBriefingFresh(true);
     setHelpReveal(null);
+    setShortcutsOpen(false);
+    setClipboardOpen(false);
+    setClipboardPage(0);
     setDataset(tutorial ? "events" : "transactions");
   }, [state.seed]);
+
+  useEffect(() => {
+    if (state.result) setClipboardOpen(false);
+  }, [state.result]);
 
   useEffect(() => {
     if (!state.player.selectedEvidence.length) return undefined;
@@ -129,6 +158,96 @@ export function Workstation({
     onBegin();
   }
 
+  function handleClipboardOpenChange(nextOpen, page = 0) {
+    setClipboardOpen(nextOpen);
+    if (nextOpen) setClipboardPage(page);
+  }
+
+  useEffect(() => {
+    if (state.result || briefingOpen) return undefined;
+
+    function onKey(event) {
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+
+      if (clipboardOpen) {
+        // Clipboard owns Esc / arrows while open
+        return;
+      }
+
+      if (event.key === "?" || (event.key === "/" && event.shiftKey)) {
+        event.preventDefault();
+        setShortcutsOpen((open) => !open);
+        return;
+      }
+
+      if (shortcutsOpen) {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          setShortcutsOpen(false);
+        }
+        return;
+      }
+
+      if (event.key === "Escape") {
+        if (selected) {
+          event.preventDefault();
+          setSelected(null);
+        }
+        return;
+      }
+
+      if (isTypingTarget(event.target)) return;
+
+      if (event.key === "/") {
+        event.preventDefault();
+        searchRef.current?.focus();
+        searchRef.current?.select?.();
+        return;
+      }
+
+      if (event.key === "t" || event.key === "T") {
+        event.preventDefault();
+        if (state.player.selectedEvidence.length > 0) {
+          handleClipboardOpenChange(true, 0);
+        } else {
+          clipboardRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+        return;
+      }
+
+      if (event.key >= "1" && event.key <= "6") {
+        const next = DATASETS[Number(event.key) - 1];
+        if (!next) return;
+        event.preventDefault();
+        setDataset(next.id);
+        setSelected(null);
+        return;
+      }
+
+      if (event.key === "Enter" && selected) {
+        event.preventDefault();
+        openRecord(selected.kind, selected.id);
+        return;
+      }
+
+      if ((event.key === "p" || event.key === "P") && selected) {
+        event.preventDefault();
+        onPin(selected.id);
+      }
+    }
+
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [
+    state.result,
+    briefingOpen,
+    selected,
+    shortcutsOpen,
+    clipboardOpen,
+    onPin,
+    state.player.selectedEvidence.length,
+  ]);
+
   return (
     <div
       className={`shell${tutorial ? " is-training" : ""}${helpReveal ? " is-helping" : ""}${pinFlash ? " is-pin-flash" : ""}`}
@@ -153,6 +272,7 @@ export function Workstation({
         onNewCase={onNewCase}
         onOpenBriefing={() => setBriefingOpen(true)}
         onEndShift={onEndShift}
+        onToggleShortcuts={() => setShortcutsOpen((open) => !open)}
       />
 
       <div className="work">
@@ -181,24 +301,30 @@ export function Workstation({
         </nav>
 
         <div className="board">
-          <ThreadBoard
-            gameCase={state.case}
-            pinned={state.player.selectedEvidence}
-            locked={Boolean(state.result)}
-            onOpen={openRecord}
-            onUnpin={onPin}
-          />
+          <div ref={clipboardRef}>
+            <Clipboard
+              gameCase={state.case}
+              pinned={state.player.selectedEvidence}
+              locked={Boolean(state.result)}
+              open={clipboardOpen}
+              initialPage={clipboardPage}
+              onOpenChange={handleClipboardOpenChange}
+              onOpenRecord={openRecord}
+              onUnpin={onPin}
+            />
+          </div>
           <section className="grid-pane" data-coach="grid">
             <div className="query-bar">
               <label>
                 Search {DATASETS.find((item) => item.id === dataset).label.toLowerCase()}
                 <input
+                  ref={searchRef}
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Filter this table"
                 />
               </label>
-              <p>{rows.length} records</p>
+              <p>{rows.length} records · press ? for keys</p>
             </div>
             <DataTable
               columns={columns}
@@ -223,6 +349,7 @@ export function Workstation({
             locked={Boolean(state.result)}
             balance={balance}
             hideLeaks={Boolean(tutorial)}
+            tipCredit={Boolean(state.case.tipCredit)}
             hintHypothesis={helpReveal?.hypothesisId ?? null}
             onNote={onNote}
             onHypothesis={onHypothesis}
@@ -269,7 +396,7 @@ export function Workstation({
           mission={state.case.mission}
           onClose={closeBriefing}
         />
-      ) : selected ? (
+      ) : selected && !clipboardOpen ? (
         <div data-coach="record">
           <RecordModal
             gameCase={state.case}
@@ -279,6 +406,27 @@ export function Workstation({
             onPin={onPin}
             onClose={() => setSelected(null)}
           />
+        </div>
+      ) : null}
+
+      {shortcutsOpen && !state.result ? (
+        <div className="shortcut-sheet" role="dialog" aria-label="Keyboard shortcuts">
+          <div className="shortcut-panel">
+            <div className="shortcut-head">
+              <p className="eyebrow">desk keys</p>
+              <button type="button" onClick={() => setShortcutsOpen(false)}>
+                Close
+              </button>
+            </div>
+            <ul>
+              {SHORTCUTS.map((item) => (
+                <li key={item.keys}>
+                  <kbd>{item.keys}</kbd>
+                  <span>{item.label}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       ) : null}
     </div>

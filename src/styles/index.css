@@ -12,6 +12,7 @@
   --font-display: "Oxanium", sans-serif;
   --font-ui: "IBM Plex Sans", sans-serif;
   --font-mono: "IBM Plex Mono", monospace;
+  --font-hand: "Caveat", cursive;
   color: var(--text);
   background: var(--ink);
   font-family: var(--font-ui);
@@ -575,6 +576,321 @@ button {
   text-align: right;
 }
 
+.clipboard-desk {
+  position: relative;
+  padding: 10px 12px 12px;
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(160deg, rgba(36, 32, 24, 0.55), rgba(18, 22, 20, 0.85)),
+    rgba(23, 28, 25, 0.7);
+}
+
+.clipboard-desk-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+
+.clipboard-desk-head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+}
+
+.clipboard-desk-head p {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.clipboard-open-btn {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid var(--signal-dim);
+  color: var(--signal);
+  padding: 6px 10px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.clipboard-open-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.clipboard-open-btn:not(:disabled):hover {
+  border-color: var(--signal);
+  background: rgba(201, 162, 90, 0.08);
+}
+
+.clipboard-board {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 118px;
+  margin: 0;
+  padding: 22px 14px 12px;
+  text-align: left;
+  border: 1px solid #3a3428;
+  background:
+    linear-gradient(180deg, rgba(55, 48, 36, 0.55) 0%, rgba(28, 26, 20, 0.9) 18%, rgba(22, 24, 20, 0.95) 100%);
+  box-shadow: inset 0 1px 0 rgba(232, 228, 217, 0.06);
+  cursor: pointer;
+}
+
+.clipboard-board:disabled {
+  cursor: default;
+}
+
+.clipboard-clip {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  width: 54px;
+  height: 18px;
+  transform: translateX(-50%);
+  border-radius: 3px 3px 6px 6px;
+  background: linear-gradient(180deg, #a8925a 0%, #6e5a34 55%, #4a3d24 100%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+}
+
+.clipboard-clip::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 7px;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(11, 13, 12, 0.45);
+}
+
+.clipboard-face {
+  display: grid;
+  gap: 6px;
+  position: relative;
+}
+
+.clipboard-empty-hand {
+  display: block;
+  font-family: var(--font-hand);
+  font-size: 1.35rem;
+  line-height: 1.25;
+  color: rgba(232, 228, 217, 0.55);
+  padding: 8px 4px;
+}
+
+.clipboard-scrap {
+  display: grid;
+  gap: 2px;
+  padding: 7px 10px 6px;
+  border: 1px solid rgba(201, 162, 90, 0.22);
+  background: linear-gradient(180deg, #ebe4d4 0%, #d9d0bc 100%);
+  color: #1c1a14;
+  transform: rotate(var(--tilt, 0deg));
+  transform-origin: top center;
+  margin-left: calc(var(--stack, 0) * 4px);
+  margin-right: calc((5 - var(--stack, 0)) * 2px);
+  animation: pin-pop 320ms ease both;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.clipboard-scrap-attach {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6a5f48;
+}
+
+.clipboard-scrap-hand {
+  font-family: var(--font-hand);
+  font-size: 1.2rem;
+  line-height: 1.15;
+  color: #1a1812;
+}
+
+.clipboard-scrap-id {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #5c5340;
+}
+
+.clipboard-more {
+  font-family: var(--font-hand);
+  font-size: 1.05rem;
+  color: rgba(232, 228, 217, 0.55);
+  padding-left: 4px;
+}
+
+.is-pin-flash .clipboard-desk {
+  box-shadow: inset 0 0 0 1px rgba(201, 162, 90, 0.45);
+}
+
+.clipboard-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.clipboard-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(8, 10, 9, 0.78);
+  cursor: pointer;
+}
+
+.clipboard-viewer {
+  position: relative;
+  z-index: 1;
+  width: min(480px, 100%);
+  display: grid;
+  gap: 12px;
+}
+
+.clipboard-viewer-clip {
+  width: 64px;
+  height: 20px;
+  margin: 0 auto -8px;
+  border-radius: 3px 3px 7px 7px;
+  background: linear-gradient(180deg, #a8925a 0%, #6e5a34 55%, #4a3d24 100%);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.clipboard-page {
+  padding: 22px 24px 28px;
+  border: 1px solid #3f382c;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 30%),
+    linear-gradient(180deg, #efe7d6 0%, #e2d7c0 48%, #d5c9ae 100%);
+  color: #1b1913;
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+  animation: brand-in 280ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.clipboard-page-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+
+.clipboard-page-head .eyebrow {
+  margin: 0;
+  color: #6e5a34;
+}
+
+.clipboard-page-count {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #6a5f48;
+}
+
+.clipboard-page-id {
+  margin: 0 0 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: #5c5340;
+}
+
+.clipboard-page-hand {
+  margin: 0 0 14px;
+  font-family: var(--font-hand);
+  font-weight: 600;
+  font-size: clamp(1.55rem, 3vw, 1.95rem);
+  line-height: 1.15;
+  color: #16140f;
+}
+
+.clipboard-page-excerpt {
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  border: 1px dashed rgba(92, 83, 64, 0.45);
+  background: rgba(255, 255, 255, 0.28);
+  color: #2a261c;
+}
+
+.clipboard-page-stub {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+  padding: 10px 12px;
+  border: 1px solid rgba(92, 83, 64, 0.35);
+  background: rgba(255, 248, 230, 0.55);
+  transform: rotate(-1.2deg);
+}
+
+.clipboard-page-stub span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6a5f48;
+}
+
+.clipboard-page-stub em {
+  font-family: var(--font-hand);
+  font-style: normal;
+  font-size: 1.15rem;
+  color: #1b1913;
+}
+
+.clipboard-viewer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.clipboard-viewer-actions button {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 8px 12px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.clipboard-viewer-actions button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.clipboard-viewer-actions .clipboard-primary {
+  border-color: var(--signal-dim);
+  color: var(--signal);
+}
+
+.clipboard-viewer-actions .clipboard-warn {
+  border-color: rgba(181, 104, 74, 0.55);
+  color: var(--warn);
+}
+
+.clipboard-dock-hint {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .thread-board {
   background: rgba(23, 28, 25, 0.7);
   border: 1px solid var(--line);
@@ -728,6 +1044,129 @@ button {
 .lesson-chain em {
   font-style: normal;
   color: var(--text);
+}
+
+.lesson-spine {
+  gap: 0;
+  margin: 0 0 16px;
+  border-left: 1px solid var(--line);
+  padding-left: 14px;
+}
+
+.lesson-spine > li {
+  position: relative;
+  padding: 0 0 14px;
+}
+
+.lesson-spine-arrow {
+  display: block;
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.lesson-beat {
+  display: grid;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: rgba(232, 228, 217, 0.03);
+}
+
+.lesson-spine > li[data-status="hit"] .lesson-beat {
+  border-color: rgba(110, 139, 98, 0.55);
+}
+
+.lesson-spine > li[data-status="missed"] .lesson-beat {
+  border-color: rgba(181, 104, 74, 0.4);
+  opacity: 0.85;
+}
+
+.lesson-beat-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.lesson-role {
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 10px;
+}
+
+.lesson-status {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.lesson-spine > li[data-status="hit"] .lesson-status {
+  color: var(--ok);
+}
+
+.lesson-spine > li[data-status="missed"] .lesson-status {
+  color: var(--warn);
+}
+
+.lesson-beat em {
+  font-style: normal;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.lesson-beat p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.lesson-empty-chain {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.lesson-noise {
+  margin: 0 0 16px;
+  padding-top: 4px;
+}
+
+.lesson-noise h4 {
+  margin: 0 0 8px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--warn);
+}
+
+.lesson-noise ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.lesson-noise li {
+  display: grid;
+  gap: 2px;
+  font-size: 12px;
+}
+
+.lesson-noise strong {
+  font-family: var(--font-mono);
+  color: var(--signal);
+}
+
+.lesson-noise span {
+  color: var(--muted);
 }
 
 .debrief-panel h2[data-ok] {
@@ -1727,4 +2166,72 @@ tbody tr.is-hint {
   .side {
     min-height: 320px;
   }
+}
+
+.shortcut-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(8, 10, 9, 0.72);
+}
+
+.shortcut-panel {
+  width: min(420px, 100%);
+  border: 1px solid var(--line);
+  background: var(--bg, #0b0d0c);
+  padding: 18px 20px 20px;
+}
+
+.shortcut-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.shortcut-head .eyebrow {
+  margin: 0;
+}
+
+.shortcut-head button {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  padding: 6px 10px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.shortcut-panel ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.shortcut-panel li {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  gap: 12px;
+  align-items: baseline;
+  font-size: 13px;
+}
+
+.shortcut-panel kbd {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--signal);
+  border: 1px solid var(--signal-dim);
+  padding: 2px 6px;
+  text-align: center;
+}
+
+.shortcut-panel span {
+  color: var(--muted);
 }

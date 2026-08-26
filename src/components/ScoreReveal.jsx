@@ -41,15 +41,49 @@ export function ScoreReveal({
           <div className="lesson-block">
             <h3>{lesson.title}</h3>
             <p>{lesson.body}</p>
-            <ol className="lesson-chain">
-              {lesson.chain.map((beat) => (
-                <li key={beat.id}>
-                  <span>{beat.label}</span>
-                  <strong>{beat.id}</strong>
-                  <em>{beat.detail}</em>
-                </li>
-              ))}
-            </ol>
+
+            {lesson.chain?.length > 0 ? (
+              <ol className="lesson-chain lesson-spine" aria-label="Truth chain">
+                {lesson.chain.map((beat, index) => (
+                  <li key={beat.id} data-status={beat.status || "missed"}>
+                    {index > 0 ? (
+                      <span className="lesson-spine-arrow" aria-hidden="true">
+                        ↓
+                      </span>
+                    ) : null}
+                    <div className="lesson-beat">
+                      <div className="lesson-beat-head">
+                        <span className="lesson-role">{beat.role || beat.kind || "beat"}</span>
+                        <span className="lesson-status">
+                          {beat.status === "hit" ? "pinned" : "missed"}
+                        </span>
+                      </div>
+                      <strong>{beat.id}</strong>
+                      <em>{beat.label}</em>
+                      <p>{beat.detail}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="lesson-empty-chain">
+                No critical chain — the correct call was that nothing criminal happened.
+              </p>
+            )}
+
+            {lesson.chased?.length > 0 ? (
+              <div className="lesson-noise">
+                <h4>Noise you chased</h4>
+                <ul>
+                  {lesson.chased.map((item) => (
+                    <li key={item.id}>
+                      <strong>{item.id}</strong>
+                      <span>{item.whyInnocent}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
           </div>
         ) : null}
 

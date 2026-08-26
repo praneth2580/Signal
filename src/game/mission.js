@@ -93,6 +93,7 @@ export function rankIndexForSolves(solves) {
 /**
  * Pick a mission tier from clearance + shift progress + a little seed variance.
  * Shift cases escalate: 1 → base, 2 → +1, 3 → +1/+2.
+ * Black desk (index 3) only for Lead Analyst (20+ solves).
  */
 export function pickMissionTier(rng, { solves = 0, shiftCaseIndex = 0 } = {}) {
   const base = rankIndexForSolves(solves);
@@ -100,7 +101,8 @@ export function pickMissionTier(rng, { solves = 0, shiftCaseIndex = 0 } = {}) {
   let index = base + escalate;
   // slight variance so the same rank is not always identical
   if (rng.chance(0.22)) index += rng.chance(0.5) ? 1 : -1;
-  index = Math.max(0, Math.min(MISSION_TIERS.length - 1, index));
+  const maxIndex = solves >= 20 ? MISSION_TIERS.length - 1 : Math.min(2, MISSION_TIERS.length - 1);
+  index = Math.max(0, Math.min(maxIndex, index));
   return MISSION_TIERS[index];
 }
 

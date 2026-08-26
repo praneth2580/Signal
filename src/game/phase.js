@@ -1,7 +1,7 @@
 export const PHASES = [
   { id: "intake", label: "Intake", blurb: "Read the symptom. Know what you are hunting." },
   { id: "sweep", label: "Sweep", blurb: "Scan the noise. Open anything that feels off." },
-  { id: "thread", label: "Thread", blurb: "Connect records. Build a chain you can defend." },
+  { id: "thread", label: "Thread", blurb: "Clip records onto the board. Build a chain you can defend." },
   { id: "commit", label: "Commit", blurb: "Lock a cause. Pin the proof. Submit." },
   { id: "debrief", label: "Debrief", blurb: "See what the data was actually saying." },
 ];

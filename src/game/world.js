@@ -1,4 +1,5 @@
 import { padId } from "./format.js";
+import { generateTruth as buildTruth } from "./truths.js";
 
 const FIRST_NAMES = [
   "Priya", "Marcus", "Elena", "Jonah", "Amina", "Chris", "Leah", "Diego",
@@ -102,20 +103,8 @@ export function generateAccounts(rng, count, people) {
   }));
 }
 
-export function generateTruth(rng, { people, accounts, locations }) {
-  const victim = rng.pick(people);
-  const unusualLocations = locations.filter((location) => location.id !== victim.locationId);
-  const location = rng.pick(unusualLocations.length > 0 ? unusualLocations : locations);
-  const account = rng.pick(accounts);
-
-  return {
-    type: "credential_compromise",
-    employeeId: victim.id,
-    accountId: account.id,
-    locationId: location.id,
-    criticalTransactionId: null,
-    evidenceIds: [],
-  };
+export function generateTruth(rng, worldActors, options = {}) {
+  return buildTruth(rng, worldActors, options);
 }
 
 export function generateWorld(rng, overrides = {}) {
@@ -132,7 +121,14 @@ export function generateWorld(rng, overrides = {}) {
   const locations = generateLocations(rng, params.locationCount);
   const people = generatePeople(rng, params.employeeCount, locations);
   const accounts = generateAccounts(rng, params.accountCount, people);
-  const truth = generateTruth(rng, { people, accounts, locations });
+  const truth = generateTruth(
+    rng,
+    { people, accounts, locations },
+    {
+      allowedTypes: overrides.allowedTypes,
+      forceType: overrides.forceType,
+    },
+  );
 
   return { params, clock, locations, people, accounts, truth };
 }

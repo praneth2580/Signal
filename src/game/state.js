@@ -2,7 +2,11 @@ import { generateCase } from "./generator.js";
 import { LEAK_OFFERS, resolveLeak } from "./leaks.js";
 import { createRng, randomSeed } from "./rng.js";
 import { evaluate } from "./evaluator.js";
-import { getCareer, getShift } from "./career.js";
+import {
+  careerAllowedTypes,
+  getCareer,
+  getShift,
+} from "./career.js";
 import {
   generateTutorialCase,
   isTutorialSeed,
@@ -25,11 +29,14 @@ export function createGame(seed, options = {}) {
   const career = getCareer();
   const shift = getShift();
   const shiftCaseIndex = shift?.active ? shift.casesDone : 0;
+
   return buildState(
     generateCase(resolved, rng, {
       solves: career.solves,
       shiftCaseIndex,
       missionId: options.missionId,
+      allowedTypes: careerAllowedTypes(career),
+      tipCredit: Boolean(career.tipCredit),
     }),
   );
 }
@@ -93,11 +100,17 @@ export function reduce(state, action) {
       const tip = resolveLeak(state.case, offer.id);
       if (!tip) return state;
 
+      const cost = action.free ? 0 : offer.cost;
+      const nextCase = action.free
+        ? { ...state.case, tipCredit: false }
+        : state.case;
+
       return {
         ...state,
+        case: nextCase,
         player: {
           ...state.player,
-          leaks: [...state.player.leaks, { id: offer.id, tip, cost: offer.cost }],
+          leaks: [...state.player.leaks, { id: offer.id, tip, cost }],
         },
       };
     }
