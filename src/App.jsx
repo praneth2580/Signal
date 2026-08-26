@@ -1,7 +1,17 @@
 import { useEffect, useReducer, useRef, useState } from "react";
 import { PlacementGate } from "./components/PlacementGate.jsx";
+import { ShiftSummary } from "./components/ShiftSummary.jsx";
 import { StartGate } from "./components/StartGate.jsx";
 import { Workstation } from "./components/Workstation.jsx";
+import {
+  clearShift,
+  completeShift,
+  getCareer,
+  getShift,
+  rankForSolves,
+  recordLiveResult,
+  startShift,
+} from "./game/career.js";
 import { LEAK_OFFERS } from "./game/leaks.js";
 import { reduce } from "./game/state.js";
 import {
@@ -17,34 +27,68 @@ export function App() {
   const [state, dispatch] = useReducer(reduce, null);
   const [seedDraft, setSeedDraft] = useState("");
   const [wallet, setWallet] = useState(getWallet);
+  const [career, setCareer] = useState(getCareer);
+  const [shift, setShift] = useState(getShift);
   const [tutorialProgress, setTutorialProgress] = useState(getTutorialProgress);
   const [placing, setPlacing] = useState(false);
+  const [showShiftSummary, setShowShiftSummary] = useState(false);
   const paidReceipt = useRef(null);
+
+  const rank = rankForSolves(career.solves);
+  const inCase = Boolean(state) && !showShiftSummary && !placing;
 
   useEffect(() => {
     if (state?.seed) setSeedDraft(state.seed);
   }, [state?.seed]);
 
   useEffect(() => {
-    if (!state?.result) return;
+    if (!state?.result || state.case.tutorial) return;
     const receipt = `${state.seed}:${state.submittedAt}`;
     if (paidReceipt.current === receipt) return;
     paidReceipt.current = receipt;
 
-    if (state.case.tutorial) {
-      setTutorialProgress(
-        markTutorialModuleComplete(state.case.tutorial.moduleId, {
-          passed: Boolean(state.result.accurate),
-        }),
-      );
-    } else if (state.result.payout > 0) {
+    if (state.result.payout > 0) {
       creditWallet(state.result.payout, receipt);
       setWallet(getWallet());
     }
+
+    const recorded = recordLiveResult(state.result);
+    setCareer(recorded.career);
+    setShift(recorded.shift);
+  }, [state?.result, state?.seed, state?.submittedAt, state?.case?.tutorial]);
+
+  useEffect(() => {
+    if (!state?.result || !state.case.tutorial) return;
+    const receipt = `tutor:${state.seed}:${state.submittedAt}`;
+    if (paidReceipt.current === receipt) return;
+    paidReceipt.current = receipt;
+    setTutorialProgress(
+      markTutorialModuleComplete(state.case.tutorial.moduleId, {
+        passed: Boolean(state.result.accurate),
+      }),
+    );
   }, [state?.result, state?.seed, state?.submittedAt, state?.case?.tutorial]);
 
   function refreshWallet() {
     setWallet(getWallet());
+  }
+
+  function leaveCase() {
+    dispatch({ type: "LEAVE" });
+  }
+
+  function beginShift(seed) {
+    const next = startShift();
+    setShift(next);
+    setShowShiftSummary(false);
+    dispatch({ type: "NEW_CASE", seed });
+  }
+
+  function finishShift() {
+    const done = completeShift() || shift;
+    setShift(done);
+    setShowShiftSummary(true);
+    leaveCase();
   }
 
   function startTutorial() {
@@ -62,6 +106,9 @@ export function App() {
       setPlacing(true);
       return;
     }
+    clearShift();
+    setShift(null);
+    setShowShiftSummary(false);
     dispatch({ type: "NEW_CASE", tutorial: moduleId });
   }
 
@@ -71,28 +118,38 @@ export function App() {
     setPlacing(false);
     const moduleId = getCurrentModuleId(progress);
     if (moduleId) {
+      clearShift();
+      setShift(null);
       dispatch({ type: "NEW_CASE", tutorial: moduleId });
     }
   }
 
   function continueAfterScore() {
-    if (!state?.case?.tutorial) {
-      dispatch({ type: "NEW_CASE" });
+    if (state?.case?.tutorial) {
+      if (!state.result?.accurate) {
+        dispatch({ type: "NEW_CASE", tutorial: state.case.tutorial.moduleId });
+        return;
+      }
+
+      const progress = markTutorialModuleComplete(state.case.tutorial.moduleId, {
+        passed: true,
+      });
+      setTutorialProgress(progress);
+      const moduleId = getCurrentModuleId(progress);
+      if (moduleId) {
+        dispatch({ type: "NEW_CASE", tutorial: moduleId });
+        return;
+      }
+
+      beginShift();
       return;
     }
 
-    if (!state.result?.accurate) {
-      dispatch({ type: "NEW_CASE", tutorial: state.case.tutorial.moduleId });
-      return;
-    }
-
-    const progress = markTutorialModuleComplete(state.case.tutorial.moduleId, {
-      passed: true,
-    });
-    setTutorialProgress(progress);
-    const moduleId = getCurrentModuleId(progress);
-    if (moduleId) {
-      dispatch({ type: "NEW_CASE", tutorial: moduleId });
+    const latest = getShift();
+    if (latest?.complete) {
+      setShift(latest);
+      setShowShiftSummary(true);
+      leaveCase();
       return;
     }
 
@@ -108,15 +165,44 @@ export function App() {
     );
   }
 
-  if (!state) {
+  if (showShiftSummary) {
+    return (
+      <ShiftSummary
+        shift={shift || { casesDone: 0, solved: 0, earned: 0 }}
+        career={career}
+        rank={rank}
+        onAgain={() => beginShift()}
+        onDesk={() => {
+          clearShift();
+          setShift(null);
+          setShowShiftSummary(false);
+          leaveCase();
+        }}
+      />
+    );
+  }
+
+  if (!inCase) {
     return (
       <StartGate
         seedDraft={seedDraft}
         balance={wallet.balance}
         tutorialProgress={tutorialProgress}
+        career={career}
+        rank={rank}
+        shift={shift}
         onSeedDraft={setSeedDraft}
-        onStart={() => dispatch({ type: "NEW_CASE", seed: seedDraft.trim() || undefined })}
+        onStart={() => {
+          clearShift();
+          setShift(null);
+          dispatch({ type: "NEW_CASE", seed: seedDraft.trim() || undefined });
+        }}
+        onShift={() => beginShift(seedDraft.trim() || undefined)}
         onTutorial={startTutorial}
+        onResumeShift={() => {
+          setShowShiftSummary(false);
+          dispatch({ type: "NEW_CASE" });
+        }}
       />
     );
   }
@@ -126,9 +212,16 @@ export function App() {
       state={state}
       seedDraft={seedDraft}
       balance={wallet.balance}
+      rank={rank}
+      shift={shift}
+      streak={career.streak}
       onSeedDraft={setSeedDraft}
       onLoadSeed={() => dispatch({ type: "NEW_CASE", seed: seedDraft.trim() || undefined })}
-      onNewCase={() => dispatch({ type: "NEW_CASE" })}
+      onNewCase={() => {
+        clearShift();
+        setShift(null);
+        dispatch({ type: "NEW_CASE" });
+      }}
       onBegin={() => dispatch({ type: "BEGIN" })}
       onPin={(id) => dispatch({ type: "PIN_EVIDENCE", id })}
       onNote={(text) => dispatch({ type: "ADD_NOTE", text })}
@@ -145,6 +238,7 @@ export function App() {
       }}
       onSubmit={() => dispatch({ type: "SUBMIT" })}
       onContinue={continueAfterScore}
+      onEndShift={finishShift}
     />
   );
 }

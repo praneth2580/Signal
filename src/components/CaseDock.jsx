@@ -20,7 +20,7 @@ export function CaseDock({
 
   return (
     <section className="dock">
-      <h2>Analysis</h2>
+      <h2>Case file</h2>
 
       <form
         className="note-form"

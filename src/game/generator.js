@@ -1,4 +1,10 @@
 import { generateEvidence } from "./evidence.js";
+import {
+  getMissionTier,
+  missionAllotmentMs,
+  pickMissionTier,
+  rollMissionParams,
+} from "./mission.js";
 import { generateWorld } from "./world.js";
 
 const SITUATIONS = [
@@ -27,14 +33,36 @@ const SITUATIONS = [
 const FIND =
   "Identify what actually happened, pin the records that support that conclusion, and submit a hypothesis. Most of the data is ordinary. Some of it only looks guilty. Do not assume a flagged row is the answer.";
 
-export function generateCase(seed, rng) {
-  const world = generateWorld(rng);
+/**
+ * @param {string} seed
+ * @param {ReturnType<import("./rng.js").createRng>} rng
+ * @param {{ solves?: number, shiftCaseIndex?: number, missionId?: string }} [options]
+ */
+export function generateCase(seed, rng, options = {}) {
+  const tier = options.missionId
+    ? getMissionTier(options.missionId)
+    : pickMissionTier(rng, {
+        solves: options.solves ?? 0,
+        shiftCaseIndex: options.shiftCaseIndex ?? 0,
+      });
+
+  const params = rollMissionParams(rng, tier);
+  const world = generateWorld(rng, { params });
+  world.mission = tier;
   const evidence = generateEvidence(rng, world);
   const situation = rng.pick(SITUATIONS);
+  const allottedMs = missionAllotmentMs(rng, tier);
 
   return {
     seed,
-    allottedMs: rng.int(8, 12) * 60 * 1000,
+    allottedMs,
+    maxPay: tier.maxPay,
+    mission: {
+      id: tier.id,
+      label: tier.label,
+      blurb: tier.blurb,
+      maxPay: tier.maxPay,
+    },
     briefing: {
       title: situation.title,
       happened: situation.happened,

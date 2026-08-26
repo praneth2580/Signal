@@ -2,6 +2,7 @@ import { generateCase } from "./generator.js";
 import { LEAK_OFFERS, resolveLeak } from "./leaks.js";
 import { createRng, randomSeed } from "./rng.js";
 import { evaluate } from "./evaluator.js";
+import { getCareer, getShift } from "./career.js";
 import {
   generateTutorialCase,
   isTutorialSeed,
@@ -21,7 +22,16 @@ export function createGame(seed, options = {}) {
   }
 
   const rng = createRng(resolved);
-  return buildState(generateCase(resolved, rng));
+  const career = getCareer();
+  const shift = getShift();
+  const shiftCaseIndex = shift?.active ? shift.casesDone : 0;
+  return buildState(
+    generateCase(resolved, rng, {
+      solves: career.solves,
+      shiftCaseIndex,
+      missionId: options.missionId,
+    }),
+  );
 }
 
 function buildState(gameCase) {
@@ -43,6 +53,8 @@ function buildState(gameCase) {
 
 export function reduce(state, action) {
   switch (action.type) {
+    case "LEAVE":
+      return null;
     case "NEW_CASE":
       return createGame(action.seed, { tutorial: action.tutorial });
     case "BEGIN": {

@@ -50,8 +50,9 @@ export function spendWallet(amount) {
 }
 
 /** Max cash for a solved case. Shrinks as elapsed time approaches allotted time. */
-export function calculatePayout({ accurate, elapsedMs, allottedMs }) {
+export function calculatePayout({ accurate, elapsedMs, allottedMs, maxPay = 200 }) {
   if (!accurate || !allottedMs || allottedMs <= 0) return 0;
   const remaining = Math.max(0, 1 - elapsedMs / allottedMs);
-  return Math.round(200 * remaining);
+  const ceiling = Math.max(0, Number(maxPay) || 200);
+  return Math.round(ceiling * remaining);
 }

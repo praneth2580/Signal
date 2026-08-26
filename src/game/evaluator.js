@@ -1,5 +1,6 @@
 import { hypothesisLabel } from "./hypotheses.js";
 import { lookupName } from "./format.js";
+import { buildLesson } from "./lesson.js";
 import { calculatePayout } from "./wallet.js";
 
 export function evaluate(state) {
@@ -66,7 +67,13 @@ export function evaluate(state) {
     lines.push({ label: "Paid shortcuts", delta: -penalty });
   }
 
-  const payout = calculatePayout({ accurate, elapsedMs, allottedMs });
+  const payout = calculatePayout({
+    accurate,
+    elapsedMs,
+    allottedMs,
+    maxPay: gameCase.maxPay ?? gameCase.mission?.maxPay ?? 200,
+  });
+  const lesson = buildLesson(gameCase, player, accurate);
 
   return {
     total,
@@ -75,8 +82,11 @@ export function evaluate(state) {
     payout,
     elapsedMs,
     allottedMs,
+    maxPay: gameCase.maxPay ?? gameCase.mission?.maxPay ?? 200,
+    mission: gameCase.mission ?? null,
     narrative: narrate(gameCase),
     hypothesis: hypothesisLabel(player.hypothesis),
+    lesson,
   };
 }
 
