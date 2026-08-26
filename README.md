@@ -4,6 +4,8 @@
 
 The player is not given a predefined mystery with a fixed sequence of clues. Each case is generated from an underlying simulation with a hidden truth. The player must decide what matters, investigate relationships between evidence, avoid red herrings, and submit an analysis.
 
+**Play the live build:** [https://praneth2580.github.io/Signal/](https://praneth2580.github.io/Signal/) (served from the `gh-pages` branch)
+
 ## Core Gameplay
 
 1. A new case is generated from a deterministic seed.
