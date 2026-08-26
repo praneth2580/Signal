@@ -233,14 +233,12 @@ button {
   font-family: var(--font-mono);
   font-size: 13px;
   color: var(--signal);
-  animation: fade-up 500ms 0.38s ease both;
 }
 
 .gate-train-note {
   margin: 0 0 18px;
   color: var(--muted);
   font-size: 13px;
-  animation: fade-up 500ms 0.4s ease both;
 }
 
 .placement-gate {
@@ -1209,8 +1207,8 @@ legend {
   min-height: 100vh;
   overflow: hidden;
   display: grid;
-  align-items: end;
-  padding: 8vh 8vw 10vh;
+  align-items: center;
+  padding: 7vh 6vw;
 }
 
 .gate-field {
@@ -1236,16 +1234,26 @@ legend {
   animation: signal-draw 1.6s 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
-.gate-copy {
+.gate-shell {
   position: relative;
   z-index: 1;
-  max-width: 36rem;
+  width: min(1100px, 100%);
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 360px);
+  gap: clamp(32px, 6vw, 80px);
+  align-items: center;
+}
+
+.gate-brand {
+  max-width: 34rem;
+  position: relative;
+  z-index: 1;
 }
 
 .gate h1 {
   margin: 0 0 18px;
   font-family: var(--font-display);
-  font-size: clamp(4.6rem, 16vw, 10.5rem);
+  font-size: clamp(4.6rem, 14vw, 9.5rem);
   font-weight: 700;
   letter-spacing: 0.08em;
   line-height: 0.82;
@@ -1254,15 +1262,161 @@ legend {
 
 .gate-line {
   margin: 0 0 10px;
-  font-size: clamp(1.15rem, 2.4vw, 1.45rem);
+  font-size: clamp(1.15rem, 2.2vw, 1.45rem);
   animation: fade-up 500ms 0.2s ease both;
 }
 
 .gate-sub {
-  margin: 0 0 28px;
-  max-width: 28rem;
+  margin: 0;
+  max-width: 26rem;
   color: var(--muted);
   animation: fade-up 500ms 0.32s ease both;
+}
+
+.gate-desk {
+  position: relative;
+  z-index: 2;
+  isolation: isolate;
+  margin: 0;
+  padding: 22px 0 22px 32px;
+  border-left: 1px solid var(--line);
+  background:
+    linear-gradient(
+      90deg,
+      rgba(11, 13, 12, 0.92) 0%,
+      rgba(11, 13, 12, 0.88) 70%,
+      rgba(11, 13, 12, 0.72) 100%
+    );
+  animation: fade-up 560ms 0.42s ease both;
+}
+
+.gate-desk::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 -1px;
+  width: 1px;
+  background: var(--line);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.gate-desk > * {
+  position: relative;
+  z-index: 1;
+}
+
+.gate-desk .eyebrow {
+  margin: 0 0 14px;
+}
+
+.gate-stats {
+  margin: 0 0 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.gate-stats div {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr;
+  gap: 10px;
+  align-items: baseline;
+}
+
+.gate-stats dt {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.gate-stats dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--text);
+}
+
+.gate-status {
+  margin: 0 0 22px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.gate-status .mission-tier {
+  margin: 0 0 0 4px;
+  vertical-align: baseline;
+}
+
+.gate-primary {
+  margin-bottom: 16px;
+}
+
+.gate-go {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--signal);
+  color: var(--signal);
+  padding: 14px 18px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.gate-go:hover {
+  background: rgba(201, 162, 90, 0.1);
+}
+
+.gate-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-bottom: 14px;
+}
+
+.gate-links button {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
+}
+
+.gate-links button:hover,
+.gate-links button.is-on {
+  color: var(--signal);
+  border-bottom-color: var(--signal-dim);
+}
+
+.gate-seed {
+  display: grid;
+  gap: 6px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.gate-seed input {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  padding: 8px 0;
+  font-family: var(--font-mono);
+  letter-spacing: 0.08em;
+  color: var(--text);
+  outline: none;
+}
+
+.gate-seed input:focus {
+  border-bottom-color: var(--signal);
 }
 
 .gate-cta {
@@ -1270,7 +1424,6 @@ legend {
   flex-wrap: wrap;
   gap: 10px;
   align-items: end;
-  animation: fade-up 500ms 0.44s ease both;
 }
 
 .gate-cta label {
@@ -1320,6 +1473,32 @@ legend {
   border-color: var(--signal-dim) !important;
   color: var(--signal) !important;
   background: rgba(201, 162, 90, 0.06) !important;
+}
+
+@media (max-width: 860px) {
+  .gate-shell {
+    grid-template-columns: 1fr;
+    gap: 36px;
+    align-items: start;
+  }
+
+  .gate-desk {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+    padding: 22px 0 0;
+    background:
+      linear-gradient(
+        180deg,
+        rgba(11, 13, 12, 0.94) 0%,
+        rgba(11, 13, 12, 0.82) 100%
+      );
+  }
+
+  .gate-desk::before {
+    inset: -1px 0 auto 0;
+    width: auto;
+    height: 1px;
+  }
 }
 
 .briefing-terms {
