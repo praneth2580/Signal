@@ -49,18 +49,20 @@ export function TutorialCoach({
   }
 
   return (
-    <aside className="coach" data-highlight={help?.ui || tip.highlight} aria-live="polite">
-      <div className="coach-head">
-        <p className="eyebrow">{tutorial.label}</p>
-        <button type="button" className="coach-help" onClick={toggleHelp}>
-          {helpOpen ? "Hide help" : "Help"}
-        </button>
+    <aside className="coach sticky-coach" data-highlight={help?.ui || tip.highlight} aria-live="polite">
+      <div className="sticky-note sticky-main">
+        <div className="coach-head">
+          <p className="eyebrow">{tutorial.label}</p>
+          <button type="button" className="coach-help" onClick={toggleHelp}>
+            {helpOpen ? "Hide" : "Peel"}
+          </button>
+        </div>
+        <h3>{tip.title}</h3>
+        <p>{tip.body}</p>
       </div>
-      <h3>{tip.title}</h3>
-      <p>{tip.body}</p>
       {helpOpen && help ? (
-        <div className="coach-answer">
-          <p className="eyebrow">Why this answer</p>
+        <div className="sticky-note sticky-under coach-answer">
+          <p className="eyebrow">Under the note</p>
           <p>{help.explain}</p>
           {help.highlightIds?.length ? (
             <p className="coach-targets">

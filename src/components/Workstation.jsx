@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { BriefingModal } from "./BriefingModal.jsx";
 import { CaseDock } from "./CaseDock.jsx";
 import { DataTable } from "./DataTable.jsx";
@@ -250,7 +251,7 @@ export function Workstation({
 
   return (
     <div
-      className={`shell${tutorial ? " is-training" : ""}${helpReveal ? " is-helping" : ""}${pinFlash ? " is-pin-flash" : ""}`}
+      className={`shell is-monitor${tutorial ? " is-training" : ""}${helpReveal ? " is-helping" : ""}${pinFlash ? " is-pin-flash" : ""}`}
       data-phase={phase}
     >
       <Masthead
@@ -409,26 +410,39 @@ export function Workstation({
         </div>
       ) : null}
 
-      {shortcutsOpen && !state.result ? (
-        <div className="shortcut-sheet" role="dialog" aria-label="Keyboard shortcuts">
-          <div className="shortcut-panel">
-            <div className="shortcut-head">
-              <p className="eyebrow">desk keys</p>
-              <button type="button" onClick={() => setShortcutsOpen(false)}>
-                Close
-              </button>
-            </div>
-            <ul>
-              {SHORTCUTS.map((item) => (
-                <li key={item.keys}>
-                  <kbd>{item.keys}</kbd>
-                  <span>{item.label}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      ) : null}
+      {shortcutsOpen && !state.result
+        ? createPortal(
+            <div
+              className="shortcut-sheet"
+              role="dialog"
+              aria-label="Keyboard shortcuts"
+              onMouseDown={(event) => {
+                if (event.target === event.currentTarget) setShortcutsOpen(false);
+              }}
+            >
+              <div
+                className="shortcut-panel"
+                onMouseDown={(event) => event.stopPropagation()}
+              >
+                <div className="shortcut-head">
+                  <p className="eyebrow">desk keys</p>
+                  <button type="button" onClick={() => setShortcutsOpen(false)}>
+                    Close
+                  </button>
+                </div>
+                <ul>
+                  {SHORTCUTS.map((item) => (
+                    <li key={item.keys}>
+                      <kbd>{item.keys}</kbd>
+                      <span>{item.label}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

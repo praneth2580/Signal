@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import { formatElapsed, formatMoney } from "../game/format.js";
 import { skillLabel } from "../game/tutorial.js";
 
@@ -28,10 +29,10 @@ export function ScoreReveal({
     cta = `Next case · ${shift.casesDone}/${shift.target}`;
   }
 
-  return (
-    <div className="reveal">
-      <div className="reveal-panel debrief-panel">
-        <p className="eyebrow">{isTutorial ? tutorial.label : "debrief"}</p>
+  return createPortal(
+    <div className="reveal dossier-reveal">
+      <div className="reveal-panel debrief-panel dossier-panel">
+        <p className="eyebrow">{isTutorial ? tutorial.label : "marked dossier"}</p>
         <h2 data-ok={passed || undefined}>
           {passed ? "Case closed — signal caught." : "Case closed — misread."}
         </h2>
@@ -145,6 +146,7 @@ export function ScoreReveal({
           ) : null}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

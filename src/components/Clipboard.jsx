@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { buildClipboardPages } from "../game/clipboard.js";
 
 const SCRAP_TILTS = [-2.4, 1.6, -1.1, 2.2, -0.8, 1.4, -1.8];
@@ -55,7 +56,7 @@ export function Clipboard({
   }, [open, pages.length, onOpenChange]);
 
   const page = pages[pageIndex] ?? null;
-  const scraps = pages.slice(0, 6);
+  const scraps = pages.slice(0, 3);
 
   function openAt(index) {
     onOpenChange(true, index);
@@ -67,7 +68,11 @@ export function Clipboard({
         <div className="clipboard-desk-head">
           <div>
             <h2>Clipboard</h2>
-            <p>Clip what might connect. Open it to flip page by page.</p>
+            <p>
+              {pages.length === 0
+                ? "Pin rows to clip evidence."
+                : `${pages.length} clipped · open to flip pages`}
+            </p>
           </div>
           <button
             type="button"
@@ -93,11 +98,7 @@ export function Clipboard({
           <span className="clipboard-clip" aria-hidden="true" />
           <span className="clipboard-face">
             {pages.length === 0 ? (
-              <span className="clipboard-empty-hand">
-                nothing clipped yet —
-                <br />
-                pin a row and it lands here
-              </span>
+              <span className="clipboard-empty-hand">nothing clipped yet</span>
             ) : (
               scraps.map((scrap, index) => (
                 <span
@@ -108,100 +109,102 @@ export function Clipboard({
                     "--stack": String(index),
                   }}
                 >
-                  <span className="clipboard-scrap-attach">{scrap.attachment}</span>
                   <span className="clipboard-scrap-hand">{scrap.scribble}</span>
                   <span className="clipboard-scrap-id">{scrap.id}</span>
                 </span>
               ))
             )}
-            {pages.length > 6 ? (
-              <span className="clipboard-more">+{pages.length - 6} under the clip</span>
+            {pages.length > 3 ? (
+              <span className="clipboard-more">+{pages.length - 3} more</span>
             ) : null}
           </span>
         </button>
       </section>
 
-      {open && page ? (
-        <div
-          className="clipboard-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Clipboard pages"
-        >
-          <button
-            type="button"
-            className="clipboard-backdrop"
-            aria-label="Close clipboard"
-            onClick={() => onOpenChange(false)}
-          />
-          <div className="clipboard-viewer">
-            <div className="clipboard-viewer-clip" aria-hidden="true" />
-            <div className="clipboard-page" key={page.id}>
-              <header className="clipboard-page-head">
-                <p className="eyebrow">clipped · {page.attachment}</p>
-                <p className="clipboard-page-count">
-                  {pageIndex + 1} / {pages.length}
-                </p>
-              </header>
-              <p className="clipboard-page-id">{page.id}</p>
-              <h3 className="clipboard-page-hand">{page.scribble}</h3>
-              <pre className="clipboard-page-excerpt">{page.excerpt}</pre>
-              <div className="clipboard-page-stub" aria-hidden="true">
-                <span>{page.attachment}</span>
-                <em>{page.title}</em>
-              </div>
-            </div>
+      {open && page
+        ? createPortal(
+            <div
+              className="clipboard-overlay"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Clipboard pages"
+            >
+              <button
+                type="button"
+                className="clipboard-backdrop"
+                aria-label="Close clipboard"
+                onClick={() => onOpenChange(false)}
+              />
+              <div className="clipboard-viewer">
+                <div className="clipboard-viewer-clip" aria-hidden="true" />
+                <div className="clipboard-page" key={page.id}>
+                  <header className="clipboard-page-head">
+                    <p className="eyebrow">clipped · {page.attachment}</p>
+                    <p className="clipboard-page-count">
+                      {pageIndex + 1} / {pages.length}
+                    </p>
+                  </header>
+                  <p className="clipboard-page-id">{page.id}</p>
+                  <h3 className="clipboard-page-hand">{page.scribble}</h3>
+                  <pre className="clipboard-page-excerpt">{page.excerpt}</pre>
+                  <div className="clipboard-page-stub" aria-hidden="true">
+                    <span>{page.attachment}</span>
+                    <em>{page.title}</em>
+                  </div>
+                </div>
 
-            <div className="clipboard-viewer-actions">
-              <button
-                type="button"
-                disabled={pageIndex <= 0}
-                onClick={() => setPageIndex((current) => Math.max(0, current - 1))}
-              >
-                Prev
-              </button>
-              <button
-                type="button"
-                disabled={pageIndex >= pages.length - 1}
-                onClick={() =>
-                  setPageIndex((current) => Math.min(pages.length - 1, current + 1))
-                }
-              >
-                Next
-              </button>
-              <button
-                type="button"
-                className="clipboard-primary"
-                disabled={!page.kind}
-                onClick={() => {
-                  if (!page.kind) return;
-                  onOpenChange(false);
-                  onOpenRecord(page.kind, page.id);
-                }}
-              >
-                Open record
-              </button>
-              {!locked ? (
-                <button
-                  type="button"
-                  className="clipboard-warn"
-                  onClick={() => {
-                    const nextLen = pages.length - 1;
-                    onUnpin(page.id);
-                    if (nextLen <= 0) onOpenChange(false);
-                    else setPageIndex((current) => Math.min(current, nextLen - 1));
-                  }}
-                >
-                  Unpin
-                </button>
-              ) : null}
-              <button type="button" onClick={() => onOpenChange(false)}>
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+                <div className="clipboard-viewer-actions">
+                  <button
+                    type="button"
+                    disabled={pageIndex <= 0}
+                    onClick={() => setPageIndex((current) => Math.max(0, current - 1))}
+                  >
+                    Prev
+                  </button>
+                  <button
+                    type="button"
+                    disabled={pageIndex >= pages.length - 1}
+                    onClick={() =>
+                      setPageIndex((current) => Math.min(pages.length - 1, current + 1))
+                    }
+                  >
+                    Next
+                  </button>
+                  <button
+                    type="button"
+                    className="clipboard-primary"
+                    disabled={!page.kind}
+                    onClick={() => {
+                      if (!page.kind) return;
+                      onOpenChange(false);
+                      onOpenRecord(page.kind, page.id);
+                    }}
+                  >
+                    Open record
+                  </button>
+                  {!locked ? (
+                    <button
+                      type="button"
+                      className="clipboard-warn"
+                      onClick={() => {
+                        const nextLen = pages.length - 1;
+                        onUnpin(page.id);
+                        if (nextLen <= 0) onOpenChange(false);
+                        else setPageIndex((current) => Math.min(current, nextLen - 1));
+                      }}
+                    >
+                      Unpin
+                    </button>
+                  ) : null}
+                  <button type="button" onClick={() => onOpenChange(false)}>
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </>
   );
 }

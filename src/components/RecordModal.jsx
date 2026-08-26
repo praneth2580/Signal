@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { formatMoney, formatStamp, lookupName } from "../game/format.js";
 import { relatedRecords, recordByRef } from "../game/relations.js";
 
@@ -26,12 +27,24 @@ export function RecordModal({ gameCase, selected, pinned, onOpen, onPin, onClose
 
   if (!selected || !record) return null;
 
-  return (
-    <div className="reveal" role="dialog" aria-modal="true" aria-labelledby="record-title">
-      <div className="reveal-panel record-panel">
+  return createPortal(
+    <div
+      className="reveal slip-reveal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="record-title"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="file-slip record-panel"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <div className="file-slip-clip" aria-hidden="true" />
         <div className="record-head">
           <div>
-            <p className="eyebrow">{LABELS[selected.kind]}</p>
+            <p className="eyebrow">{LABELS[selected.kind]} slip</p>
             <h2 id="record-title">{record.id}</h2>
           </div>
           <div className="record-actions">
@@ -40,10 +53,10 @@ export function RecordModal({ gameCase, selected, pinned, onOpen, onPin, onClose
               className={isPinned ? "is-on" : ""}
               onClick={() => onPin(record.id)}
             >
-              {isPinned ? "Pinned" : "Pin evidence"}
+              {isPinned ? "On clipboard" : "Clip it"}
             </button>
             <button type="button" onClick={onClose}>
-              Close
+              File away
             </button>
           </div>
         </div>
@@ -52,8 +65,8 @@ export function RecordModal({ gameCase, selected, pinned, onOpen, onPin, onClose
 
         {related.length > 0 ? (
           <>
-            <h3>Related</h3>
-            <ul className="related">
+            <h3>Paperclipped</h3>
+            <ul className="related slip-tabs">
               {related.map((item) => (
                 <li key={`${item.kind}-${item.record.id}-${item.reason}`}>
                   <button type="button" onClick={() => onOpen(item.kind, item.record.id)}>
@@ -66,7 +79,8 @@ export function RecordModal({ gameCase, selected, pinned, onOpen, onPin, onClose
           </>
         ) : null}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

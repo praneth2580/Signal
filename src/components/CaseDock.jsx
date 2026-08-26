@@ -20,11 +20,18 @@ export function CaseDock({
   const bought = new Set((player.leaks ?? []).map((leak) => leak.id));
 
   return (
-    <section className="dock">
-      <h2>Case file</h2>
+    <section className="dock blotter-dock">
+      <div className="blotter-head">
+        <h2>Blotter</h2>
+        <p className="clipboard-dock-hint">
+          {player.selectedEvidence.length === 0
+            ? "Clipboard empty — pin rows from the tables."
+            : `${player.selectedEvidence.length} clipped on the board`}
+        </p>
+      </div>
 
       <form
-        className="note-form"
+        className="note-form blotter-notes"
         onSubmit={(event) => {
           event.preventDefault();
           onNote(draft);
@@ -32,48 +39,42 @@ export function CaseDock({
         }}
       >
         <label>
-          Notes
+          Scratch notes
           <textarea
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
-            placeholder="What looks off?"
+            placeholder="ink what looks off…"
             disabled={locked}
           />
         </label>
         <button type="submit" disabled={locked || !draft.trim()}>
-          Save note
+          Ink it
         </button>
       </form>
 
       {player.notes.length > 0 ? (
-        <ul className="notes">
+        <ul className="notes blotter-note-list">
           {player.notes.map((note) => (
             <li key={note.id}>{note.text}</li>
           ))}
         </ul>
       ) : null}
 
-      <p className="clipboard-dock-hint">
-        {player.selectedEvidence.length === 0
-          ? "Clipboard empty — pin rows from the tables."
-          : `${player.selectedEvidence.length} clipped on the board`}
-      </p>
-
       {!hideLeaks ? (
-        <div className="contacts">
-          <h3>Paid contacts</h3>
+        <div className="contacts envelope-rack">
+          <h3>Sealed contacts</h3>
           <p className="contacts-blurb">
-            Spend desk cash for leaks. Faster solves pay more — shortcuts cost score and future cash.
-            {tipCredit ? " Streak perk: one anonymous tip is free on this case." : ""}
+            Buy an envelope. Tips cost score later.
+            {tipCredit ? " Streak perk: one anonymous tip is free." : ""}
           </p>
-          <ul className="leak-list">
+          <ul className="leak-list envelope-list">
             {LEAK_OFFERS.map((offer) => {
               const owned = bought.has(offer.id);
               const freeOffer = tipCredit && offer.id === "anonymous_tip";
               const canAfford = freeOffer || balance >= offer.cost;
               return (
-                <li key={offer.id}>
-                  <div>
+                <li key={offer.id} className={owned ? "is-open" : ""}>
+                  <div className="envelope-face">
                     <strong>{offer.label}</strong>
                     <span>{offer.blurb}</span>
                   </div>
@@ -82,7 +83,7 @@ export function CaseDock({
                     disabled={locked || owned || !canAfford}
                     onClick={() => onBuyLeak(offer.id)}
                   >
-                    {owned ? "Bought" : freeOffer ? "Free" : formatMoney(offer.cost)}
+                    {owned ? "Opened" : freeOffer ? "Free" : formatMoney(offer.cost)}
                   </button>
                 </li>
               );
@@ -98,26 +99,31 @@ export function CaseDock({
         </div>
       ) : null}
 
-      <fieldset disabled={locked}>
-        <legend>Hypothesis</legend>
-        {HYPOTHESES.map((item) => (
-          <label
-            key={item.id}
-            className={item.id === hintHypothesis ? "choice is-hint" : "choice"}
-          >
-            <input
-              type="radio"
-              name="hypothesis"
-              checked={player.hypothesis === item.id}
-              onChange={() => onHypothesis(item.id)}
-            />
-            {item.label}
-          </label>
-        ))}
-      </fieldset>
+      <div className="stamp-pad" aria-label="Hypothesis stamps">
+        <p className="stamp-pad-label">Stamp a call</p>
+        <div className="stamp-grid" role="radiogroup" aria-label="Hypothesis">
+          {HYPOTHESES.map((item) => {
+            const active = player.hypothesis === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                disabled={locked}
+                className={`stamp${active ? " is-inked" : ""}${item.id === hintHypothesis ? " is-hint" : ""}`}
+                onClick={() => onHypothesis(item.id)}
+              >
+                <span className="stamp-mark">{active ? "INKED" : "STAMP"}</span>
+                <span className="stamp-text">{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-      <label className="confidence">
-        Confidence
+      <label className="confidence pressure-dial">
+        Pressure
         <input
           type="range"
           min="1"
@@ -131,11 +137,11 @@ export function CaseDock({
 
       <button
         type="button"
-        className="submit"
+        className="submit file-stamp"
         disabled={locked || !player.hypothesis}
         onClick={onSubmit}
       >
-        Submit analysis
+        File analysis
       </button>
     </section>
   );
