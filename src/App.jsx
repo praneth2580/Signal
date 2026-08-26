@@ -1,4 +1,5 @@
 import { useEffect, useReducer, useRef, useState } from "react";
+import { Landing } from "./components/Landing.jsx";
 import { PlacementGate } from "./components/PlacementGate.jsx";
 import { ShiftSummary } from "./components/ShiftSummary.jsx";
 import { StartGate } from "./components/StartGate.jsx";
@@ -24,6 +25,24 @@ import {
 } from "./game/tutorial.js";
 import { creditWallet, getWallet, spendWallet } from "./game/wallet.js";
 
+const LANDING_SKIP_KEY = "signal:skip-landing";
+
+function readSkipLanding() {
+  try {
+    return sessionStorage.getItem(LANDING_SKIP_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function writeSkipLanding() {
+  try {
+    sessionStorage.setItem(LANDING_SKIP_KEY, "1");
+  } catch {
+    /* ignore private-mode storage failures */
+  }
+}
+
 export function App() {
   const [state, dispatch] = useReducer(reduce, null);
   const [seedDraft, setSeedDraft] = useState("");
@@ -33,6 +52,7 @@ export function App() {
   const [tutorialProgress, setTutorialProgress] = useState(getTutorialProgress);
   const [placing, setPlacing] = useState(false);
   const [showShiftSummary, setShowShiftSummary] = useState(false);
+  const [showLanding, setShowLanding] = useState(() => !readSkipLanding());
   const paidReceipt = useRef(null);
 
   const rank = rankForSolves(career.solves);
@@ -155,6 +175,17 @@ export function App() {
     }
 
     dispatch({ type: "NEW_CASE" });
+  }
+
+  if (showLanding) {
+    return (
+      <Landing
+        onEnter={() => {
+          writeSkipLanding();
+          setShowLanding(false);
+        }}
+      />
+    );
   }
 
   if (placing) {
