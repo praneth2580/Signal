@@ -2356,9 +2356,31 @@ legend {
 }
 
 @media (max-width: 860px) {
+  .gate.gate-room {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .desk-room {
+    height: auto;
+    min-height: 100%;
+    max-height: none;
+    overflow: visible;
+    align-items: start;
+    padding: 1.5vh 4vw 2vh;
+  }
+
+  .desk-monitor-stage {
+    width: min(420px, 88vw);
+  }
+
   .desk-top {
     grid-template-columns: 1fr;
     gap: 16px;
+    transform: rotateX(8deg) translateZ(-10px);
   }
 
   .desk-litter {
@@ -2371,7 +2393,29 @@ legend {
   }
 
   .gate-room.is-entering .desk-monitor-stage {
-    transform: rotateX(0deg) translateZ(0) scale(1.28) translateY(3vh);
+    transform: rotateX(0deg) translateZ(0) scale(1.12) translateY(2vh);
+  }
+}
+
+@media (max-height: 700px) {
+  .desk-room {
+    padding: 1vh 3vw 1.5vh;
+  }
+
+  .desk-monitor-stage {
+    width: min(360px, 72vw);
+  }
+
+  .desk-bezel {
+    padding: 8px 8px 6px;
+  }
+
+  .desk-screen-copy {
+    padding: 10px 12px;
+  }
+
+  .desk-top {
+    padding: 12px 3% 1.5vh;
   }
 }
 
@@ -2544,6 +2588,13 @@ tbody tr.is-hint {
     right: 12px;
     bottom: 12px;
     width: auto;
+    max-height: min(42dvh, 320px);
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .coach-help {
+    padding: 8px 12px;
   }
 
   .briefing-terms div {
@@ -2579,19 +2630,66 @@ tbody tr.is-hint {
     justify-items: start;
   }
 
+  .clock-block {
+    justify-items: start;
+    width: 100%;
+  }
+
+  .clock-meta,
+  .clock {
+    justify-content: start;
+  }
+
+  .pressure-msg {
+    text-align: left;
+  }
+
+  .clock-bar {
+    width: min(280px, 100%);
+  }
+
   .work {
     grid-template-columns: 1fr;
+    grid-auto-rows: max-content;
+    align-content: start;
+    overflow: auto;
+    min-height: 0;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .rail,
+  .board,
+  .side {
+    min-height: max-content;
+  }
+
+  .board {
+    grid-template-rows: auto auto;
+  }
+
+  .grid-pane {
+    grid-template-rows: auto auto;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    overflow-y: visible;
+    min-height: auto;
   }
 
   .rail {
     flex-direction: row;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-shrink: 0;
   }
 
   .rail button {
     border-left: 0;
     border-bottom: 2px solid transparent;
     white-space: nowrap;
+    padding: 12px 14px;
+    min-height: 44px;
   }
 
   .rail button.is-on {
@@ -2599,7 +2697,96 @@ tbody tr.is-hint {
   }
 
   .side {
-    min-height: 320px;
+    min-height: min(320px, 45dvh);
+  }
+
+  .seed-form {
+    flex-wrap: wrap;
+  }
+
+  .seed-form input {
+    width: 100%;
+    max-width: 12rem;
+  }
+
+  .seed-form button {
+    min-height: 44px;
+    padding: 10px 14px;
+  }
+
+  .query-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .clipboard-open-btn {
+    min-height: 44px;
+    padding: 10px 12px;
+  }
+
+  .phase-chip {
+    padding: 8px 10px;
+    min-height: 36px;
+  }
+}
+
+@media (max-width: 560px) {
+  .shell.is-monitor {
+    padding: 10px 12px 12px;
+    box-shadow:
+      inset 0 0 0 4px #151914,
+      inset 0 0 0 5px #2a322c,
+      inset 0 0 28px rgba(0, 0, 0, 0.45);
+  }
+
+  .brand-block h1 {
+    font-size: clamp(1.8rem, 9vw, 2.6rem);
+  }
+
+  .mast {
+    gap: 12px;
+    padding-bottom: 10px;
+  }
+
+  .brief {
+    font-size: 0.95rem;
+  }
+
+  .board {
+    gap: 8px;
+  }
+
+  .grid-pane {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .record-fields {
+    grid-template-columns: 1fr;
+    gap: 2px 0;
+  }
+
+  .record-fields dt {
+    margin-top: 6px;
+  }
+
+  .record-fields dt:first-child {
+    margin-top: 0;
+  }
+
+  .case-folder,
+  .file-slip,
+  .record-panel,
+  .reveal-panel {
+    width: min(560px, calc(100vw - 24px));
+  }
+
+  .coach {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    max-height: min(38dvh, 280px);
+    padding: 12px 14px;
   }
 }
 
